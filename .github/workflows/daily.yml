@@ -2,8 +2,8 @@ name: Daily Crypto Pipeline
 
 on:
   schedule:
-    - cron: "0 8 * * *"   # every day at 8am UTC (4am Eastern)
-  workflow_dispatch:       # allow manual trigger in the Actions tab
+    - cron: "0 8 * * *"   # every day at 8am UTC
+  workflow_dispatch:       # allow manual trigger
 
 jobs:
   run:
@@ -17,8 +17,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - name: Clear pip cache
-        run: pip cache purge
 
       - name: Install dependencies
         run: |
