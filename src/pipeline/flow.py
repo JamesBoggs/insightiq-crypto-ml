@@ -33,7 +33,7 @@ def train():
 def save_predictions():
     import pandas as pd, mlflow, os
 
-    # connect to MLflow (defaults to local, but can point to remote if set)
+    # connect to MLflow (defaults to local server if set)
     mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI', 'http://127.0.0.1:5001'))
     client = mlflow.tracking.MlflowClient()
 
@@ -51,12 +51,17 @@ def save_predictions():
             'ma_3d','ma_7d','ma_14d','ma_30d',
             'comp_mean','pos_mean','neg_mean','neu_mean','n_posts']]
 
-    # predict and save last 50 rows
+    # predict
     probs = model.predict(X).tolist()
-    df['prob_up'] = [p[1] if isinstance(p, (list, tuple)) else p for p in probs]
-    df[['date','coin','prob_up']].tail(50).to_csv("predictions.csv", index=False)
 
-    print("✅ Wrote predictions.csv")
+    # handle both numpy arrays and lists of lists
+    df['prob_up'] = [p[1] if isinstance(p, (list, tuple)) else p for p in probs]
+
+    # save last 50 rows
+    out = df[['date','coin','prob_up']].tail(50)
+    out.to_csv("predictions.csv", index=False)
+
+    print("✅ Wrote predictions.csv with shape", out.shape)
 
 @flow
 def crypto_pipeline():
