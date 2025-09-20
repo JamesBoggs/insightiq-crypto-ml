@@ -20,12 +20,13 @@ jobs:
       - name: Clear pip cache
         run: pip cache purge
 
-       - name: Install dependencies
+             - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip cache purge
           pip install --no-cache-dir -r requirements.txt
           python -m nltk.downloader vader_lexicon
+
 
 
       - name: Run pipeline
