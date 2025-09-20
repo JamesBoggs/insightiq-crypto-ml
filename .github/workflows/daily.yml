@@ -2,14 +2,16 @@ name: Daily Crypto Pipeline
 
 on:
   schedule:
-    - cron: "0 8 * * *"   # every day at 8am UTC
-  workflow_dispatch:       # allows manual trigger
+    - cron: "0 8 * * *"   # every day at 8am UTC (4am Eastern)
+  workflow_dispatch:       # allow manual trigger in the Actions tab
 
 jobs:
   run:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -24,4 +26,10 @@ jobs:
       - name: Run pipeline
         run: python src/pipeline/flow.py
 
-
+      - name: Commit predictions
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add predictions.csv
+          git commit -m "Update daily predictions [skip ci]" || echo "No changes to commit"
+          git push
