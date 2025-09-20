@@ -1,0 +1,53 @@
+name: Daily Crypto Pipeline (v2)
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # 8am UTC daily
+  workflow_dispatch:       # allow manual runs
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      PIP_NO_CACHE_DIR: "1"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # PROVE the file we're using is the one on GitHub
+      - name: Show requirements.txt
+        run: cat requirements.txt
+
+      - name: Install dependencies (force fresh)
+        run: |
+          pip install --upgrade pip
+          pip cache purge || true
+          pip install --no-cache-dir "pyarrow==15.0.2" "mlflow<2.15"  # make it explicit
+          pip install --no-cache-dir -r requirements.txt
+          python -m nltk.downloader vader_lexicon
+
+      # PROVE the installed versions are correct
+      - name: Show versions
+        run: |
+          python - << 'PY'
+          import pyarrow, mlflow
+          print("pyarrow:", pyarrow.__version__)
+          print("mlflow:", mlflow.__version__)
+          PY
+
+      - name: Run pipeline
+        run: python src/pipeline/flow.py
+
+      - name: Commit predictions
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add predictions.csv
+          git commit -m "Update daily predictions [skip ci]" || echo "No changes to commit"
+          git push
