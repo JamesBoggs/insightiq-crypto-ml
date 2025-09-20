@@ -18,10 +18,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install --upgrade pip
+          pip cache purge
+          pip install --no-cache-dir -r requirements.txt
           python -m nltk.downloader vader_lexicon
+
 
       - name: Run pipeline
         run: python src/pipeline/flow.py
